@@ -687,10 +687,13 @@ tool continues operating independently for its current weekly use.
 |---|---|---|
 | Database / Auth / Storage | Supabase (PostgreSQL) | Relational model; RLS for access control; audit logging for bio history; Storage for file uploads |
 | Front end | React + TypeScript | |
+| Build tool | Vite | React + TypeScript template; `VITE_` prefix required for browser-exposed env vars |
+| Styling | Tailwind CSS | Utility-first CSS; design tokens customisable via `tailwind.config.ts` |
+| Component library | shadcn/ui | Pre-built accessible React components (tables, forms, dialogs); installed on top of Tailwind |
 | Rich text editor | Tiptap | Constrained to `<p>` `<strong>` `<em>` `<br>` only |
 | Hosting | Vercel | |
 | AI (pitch bio shortening, Phase 3 parser) | Anthropic API (Claude Sonnet) | Selective use only. Not used for template-based generation. |
-| Initial scaffold | Cursor | Scaffolded directly in Cursor. AI Studio step skipped; repo was already established before UI build began. |
+| Initial scaffold | Cursor | Scaffolded with Vite directly in Cursor. AI Studio step skipped; repo was already established before UI build began. |
 | Ongoing development | Cursor | Claude-native, VS Code-based agent mode. Reads full codebase. User has existing VS Code familiarity. |
 | Fallback scaffold option | Antigravity | VS Code skin, Gemini-based. Option if AI Studio proves insufficient. |
 | Code repository | GitHub | |
