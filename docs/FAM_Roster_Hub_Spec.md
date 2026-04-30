@@ -1,6 +1,6 @@
 # FAM Roster Hub — Project Specification
-**Version:** 4.2
-**Date:** March 2026
+**Version:** 4.3
+**Date:** April 2026
 **Owner:** FAM (First Artists Management)
 **Status:** Final — approved for Supabase migration SQL
 **v4.1 fix:** Added `deleted_at` to PROJECT_PEOPLE and PROJECT_COMPANIES.
@@ -372,6 +372,34 @@ by default. All other fields behind "Add more details" toggle.
 
 ---
 
+**CLIENT_COMPANY_RELATIONSHIPS**
+
+Tracks direct client-to-company relationships independent of credit
+history. Credit-derived company connections are already queryable via
+CREDITS → PROJECT_COMPANIES → COMPANIES; this table captures
+relationships that exist without a corresponding credit (e.g. meetings,
+warm contacts, agency connections).
+
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| client_id | FK: CLIENTS | |
+| company_id | FK: COMPANIES | |
+| heat_level | enum | Cold, Warm, Hot, Direct Collaborator |
+| notes | text | Optional free text |
+| created_at | timestamp | |
+| updated_at | timestamp | Auto-updated via trigger |
+| deleted_at | timestamp | Soft delete |
+
+**Unique constraint:** Partial unique index on `(client_id, company_id)`
+where `deleted_at IS NULL`.
+
+**Phase 3 note:** A dedicated `prowee_company_matches` table, if needed
+for company-level ProWee matching, is deferred to Phase 3 when
+requirements are clearer.
+
+---
+
 **REELS**
 
 | Field | Type | Notes |
@@ -471,6 +499,14 @@ The build session should execute an agreed schema, not design one. Before
 the session: take at least one real client's spreadsheet, map its columns
 to the import targets below, and confirm the mapping with FAM. Bring
 the confirmed mapping and sample data to the session.
+
+**Source document format:** FAM credit and project data is currently
+held in Word-format CVs and credit lists, not structured spreadsheets.
+The planned ingestion approach is an LLM-assisted conversion pipeline
+(separate build, outside the Hub) that transforms these documents into
+structured spreadsheets conforming to the import schema below. The
+import script and target schema defined in this section remain valid;
+only the upstream source preparation changes.
 
 **Minimum import targets:**
 
@@ -654,7 +690,7 @@ tool continues operating independently for its current weekly use.
 | Rich text editor | Tiptap | Constrained to `<p>` `<strong>` `<em>` `<br>` only |
 | Hosting | Vercel | |
 | AI (pitch bio shortening, Phase 3 parser) | Anthropic API (Claude Sonnet) | Selective use only. Not used for template-based generation. |
-| Initial scaffold | Google AI Studio (Gemini) | Free tier. No native Supabase connection; connect manually after GitHub export. |
+| Initial scaffold | Cursor | Scaffolded directly in Cursor. AI Studio step skipped; repo was already established before UI build began. |
 | Ongoing development | Cursor | Claude-native, VS Code-based agent mode. Reads full codebase. User has existing VS Code familiarity. |
 | Fallback scaffold option | Antigravity | VS Code skin, Gemini-based. Option if AI Studio proves insufficient. |
 | Code repository | GitHub | |
@@ -664,7 +700,7 @@ tool continues operating independently for its current weekly use.
 1. Write Supabase migration SQL from this spec
 2. Map and confirm bulk import schema against real FAM data
 3. Build CSV import script
-4. Scaffold UI in AI Studio; export to GitHub
+4. Scaffold UI directly in Cursor
 5. Connect Supabase manually
 6. All further development in Cursor
 
@@ -722,6 +758,9 @@ and what authentication method is required.
 | March 2026 | CV generator is template-based, not AI | Deterministic assembly; AI adds cost without value here | AI used only for optional pitch bio shortening |
 | March 2026 | Credits created as by-product of project entry | Users never interact with CREDITS table directly | Project entry creates PROJECT and CREDITS simultaneously |
 | March 2026 | Optimiser API confirmed; integration viable | Verified via Optimiser Touchpoint documentation | Next: obtain API credentials from account manager |
+| April 2026 | Added `client_company_relationships` table as migration 00002 | Clients may have meaningful company relationships not reflected in credit history; these had no home in the schema | Purely additive; no existing tables changed; `prowee_company_matches` deferred to Phase 3 |
+| April 2026 | UI scaffold built directly in Cursor rather than AI Studio | Repo already existed before UI build began; AI Studio export step was unnecessary overhead | Section 8 tooling order and tech stack table updated accordingly |
+| April 2026 | LLM-assisted conversion pipeline planned for Word-format credit and project data ingestion | Source documents are Word files, not structured spreadsheets; LLM conversion is more efficient than manual entry or a bespoke parser | Separate build outside the Hub; import schema in Section 4.2 remains the target format |
 
 ---
 

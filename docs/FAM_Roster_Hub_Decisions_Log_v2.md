@@ -91,3 +91,10 @@ Decision: Added client_company_relationships table to track direct client-to-com
 Reason: Credit-derived company connections are already queryable via CREDITS → PROJECT_COMPANIES → COMPANIES, but clients may have meaningful relationships with companies (e.g. meetings, warm contacts) that are not reflected in their credit history. These are a real signal in sync representation.
 Impact: Purely additive; no changes to existing tables. Phase 3 ProWee company matching deferred: credit-derived company flagging is already supported by existing schema, and a dedicated prowee_company_matches table (if needed) will be designed during Phase 3 when requirements are clearer.
 Spec update needed: Yes, Section 4.1 (new table definition) and Section 10 (decisions log table).
+
+Date: April 2026
+Decision: Bulk import of credits and projects will use an LLM-assisted conversion pipeline to transform Word-format CVs and credit lists into structured spreadsheets, rather than direct CSV mapping or manual UI entry.
+Reason: FAM credit and project data exists as Word documents, not structured spreadsheets. An LLM conversion step is a more efficient and scalable path than manual entry or a bespoke parser.
+Impact: The conversion pipeline is a separate build outside the Hub itself, leveraging an LLM (likely Claude) to standardise source documents into the confirmed import schema before upload. The import script and schema mapping 
+work defined in Section 4.2 remains valid as the target format; only the source ingestion method changes. Build order is unaffected: import pipeline still precedes data-entry UI for credits and projects.
+Spec update needed: Yes, Section 4.2 (note that source documents are Word-format; LLM-assisted conversion is the planned ingestion approach).
