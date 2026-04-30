@@ -110,3 +110,21 @@ Decision: Tailwind CSS and shadcn/ui adopted as the UI styling and component fra
 Reason: Tailwind provides utility-first CSS without writing custom stylesheets; shadcn/ui provides pre-built, accessible React components (tables, forms, dialogs, dropdowns) that accelerate admin UI development significantly. Both are well-supported with React + Vite + TypeScript.
 Impact: All styling uses Tailwind utility classes; reusable UI components sourced from shadcn/ui rather than built from scratch; tailwind.config.ts, components.json, and src/components/ui/ added to repo. Design tokens (colours, spacing) can be customised via Tailwind config as the FAM brand template is finalised.
 Spec update needed: Yes, Section 8 tech stack table (add Tailwind and shadcn/ui rows).
+
+Date: April 2026
+Decision: Client-scoped RLS policies deferred to Phase 2; Phase 1 implements admin-only RLS on all tables.
+Reason: Phase 1 is admin-only tooling. Client accounts do not exist until Phase 2. Writing client RLS policies now produces untestable code that may need revision when client portal requirements are finalised.
+Impact: Migration 00004 contains only admin-access and authenticated-read policies. A new migration will be required at the start of Phase 2 to add client-scoped policies before any client account is created.
+Spec update needed: No. Spec Section 2 already defines both roles; the phasing is implicit in Section 3.
+
+Date: April 2026
+Decision: Public signup disabled in the Supabase dashboard. Admin accounts created manually via dashboard only.
+Reason: With public signup enabled, anyone with the Supabase project URL can create an account. Since admin accounts are created manually and client accounts are Phase 2 scope, no legitimate use case exists for public signup.
+Impact: Manual dashboard step required before any deployment. Must be re-evaluated in Phase 2 when client invite flow is designed (likely an admin-triggered invite rather than re-enabling public signup).
+Spec update needed: No. This is an operational security configuration, not a schema or feature change.
+
+Date: April 2026
+Decision: Auth session management uses Supabase onAuthStateChange listener, not a one-time session check.
+Reason: A one-time getSession() call does not handle token expiry, session refresh, or logout events from other tabs. onAuthStateChange provides a continuous event stream that keeps the React auth context synchronised with the actual session state.
+Impact: The AuthContext provider must subscribe on mount and unsubscribe on unmount. All components consuming auth state receive updates reactively.
+Spec update needed: No. This is an implementation detail within the confirmed tech stack.
