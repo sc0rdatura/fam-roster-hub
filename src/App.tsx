@@ -1,9 +1,25 @@
-import { supabase } from "./lib/supabase";
-
-console.log("Supabase client initialised:", !!supabase);
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import RootLayout from "./layouts/RootLayout";
+import DashboardPage from "./pages/DashboardPage";
+import ClientListPage from "./pages/ClientListPage";
+import ClientProfilePage from "./pages/ClientProfilePage";
+import CreditsPage from "./pages/CreditsPage";
+import RelationshipsPage from "./pages/RelationshipsPage";
 
 function App() {
-  return <h1 className="text-3xl font-bold p-8">FAM Roster Hub</h1>;
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<RootLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="clients" element={<ClientListPage />} />
+          <Route path="clients/:id" element={<ClientProfilePage />} />
+          <Route path="credits" element={<CreditsPage />} />
+          <Route path="relationships" element={<RelationshipsPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
