@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import RootLayout from "./layouts/RootLayout";
 import DashboardPage from "./pages/DashboardPage";
 import ClientListPage from "./pages/ClientListPage";
@@ -8,17 +9,19 @@ import RelationshipsPage from "./pages/RelationshipsPage";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<RootLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="clients" element={<ClientListPage />} />
-          <Route path="clients/:id" element={<ClientProfilePage />} />
-          <Route path="credits" element={<CreditsPage />} />
-          <Route path="relationships" element={<RelationshipsPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<RootLayout />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="clients" element={<ClientListPage />} />
+            <Route path="clients/:id" element={<ClientProfilePage />} />
+            <Route path="credits" element={<CreditsPage />} />
+            <Route path="relationships" element={<RelationshipsPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
