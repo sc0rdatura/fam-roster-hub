@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import LoginPage from "./pages/LoginPage";
 import RootLayout from "./layouts/RootLayout";
 import DashboardPage from "./pages/DashboardPage";
 import ClientListPage from "./pages/ClientListPage";
@@ -12,6 +13,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="login" element={<LoginPage />} />
           <Route element={<RootLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="clients" element={<ClientListPage />} />
