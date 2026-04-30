@@ -98,3 +98,15 @@ Reason: FAM credit and project data exists as Word documents, not structured spr
 Impact: The conversion pipeline is a separate build outside the Hub itself, leveraging an LLM (likely Claude) to standardise source documents into the confirmed import schema before upload. The import script and schema mapping 
 work defined in Section 4.2 remains valid as the target format; only the source ingestion method changes. Build order is unaffected: import pipeline still precedes data-entry UI for credits and projects.
 Spec update needed: Yes, Section 4.2 (note that source documents are Word-format; LLM-assisted conversion is the planned ingestion approach).
+
+Date: April 2026
+Decision: Vite adopted as the build tool for the React + TypeScript frontend.
+Reason: Vite is the standard build tool for React + TypeScript projects deployed to Vercel; it is fast, well-supported, and requires minimal configuration. No viable alternative was considered.
+Impact: All frontend source lives under src/ at the repo root; environment variables exposed to the browser must use the VITE_ prefix; vite.config.ts added to repo root.
+Spec update needed: Yes, Section 8 tech stack table (add Vite row).
+
+Date: April 2026
+Decision: Tailwind CSS and shadcn/ui adopted as the UI styling and component framework.
+Reason: Tailwind provides utility-first CSS without writing custom stylesheets; shadcn/ui provides pre-built, accessible React components (tables, forms, dialogs, dropdowns) that accelerate admin UI development significantly. Both are well-supported with React + Vite + TypeScript.
+Impact: All styling uses Tailwind utility classes; reusable UI components sourced from shadcn/ui rather than built from scratch; tailwind.config.ts, components.json, and src/components/ui/ added to repo. Design tokens (colours, spacing) can be customised via Tailwind config as the FAM brand template is finalised.
+Spec update needed: Yes, Section 8 tech stack table (add Tailwind and shadcn/ui rows).
