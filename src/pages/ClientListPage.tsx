@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import type { Client } from "@/types";
+import { AddClientDialog } from "@/components/AddClientDialog";
 import {
   Table,
   TableBody,
@@ -90,9 +91,12 @@ export default function ClientListPage() {
     <div className="p-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Clients</h1>
-        <span className="text-sm text-muted-foreground">
-          {filtered.length} {filtered.length === 1 ? "client" : "clients"}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">
+            {filtered.length} {filtered.length === 1 ? "client" : "clients"}
+          </span>
+          <AddClientDialog />
+        </div>
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-4">
