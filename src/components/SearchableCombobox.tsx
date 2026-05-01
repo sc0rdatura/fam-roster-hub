@@ -85,9 +85,8 @@ export function SearchableCombobox({
     setResults([]);
   }
 
-  const hasExactMatch = results.some(
-    (r) => r.label.toLowerCase() === query.trim().toLowerCase()
-  );
+  // Always allow creating new items even if an exact name match exists
+  // (e.g. two different projects can share the same title)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -152,7 +151,7 @@ export function SearchableCombobox({
               </CommandGroup>
             )}
 
-            {onCreate && query.trim() && !hasExactMatch && (
+            {onCreate && query.trim() && (
               <>
                 {results.length > 0 && <CommandSeparator />}
                 <CommandGroup>

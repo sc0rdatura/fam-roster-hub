@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClientEditForm } from "@/components/ClientEditForm";
 import { CreditEntryDialog } from "@/components/CreditEntryDialog";
+import { CreditList } from "@/components/CreditList";
 import { ArrowLeft, ExternalLink, Globe, Film, Pencil } from "lucide-react";
 
 export default function ClientProfilePage() {
@@ -18,6 +19,7 @@ export default function ClientProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [creditRefreshKey, setCreditRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -231,16 +233,10 @@ export default function ClientProfilePage() {
           <div className="mb-4 flex justify-end">
             <CreditEntryDialog
               clientId={client.id}
-              onCreditCreated={() => {
-                /* T7 will add credit list refresh here */
-              }}
+              onCreditCreated={() => setCreditRefreshKey((k) => k + 1)}
             />
           </div>
-          <Card>
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              Credit list will be displayed here (T7). Use "Add credit" above to create entries.
-            </CardContent>
-          </Card>
+          <CreditList clientId={client.id} refreshKey={creditRefreshKey} />
         </TabsContent>
 
         <TabsContent value="awards" className="mt-6">

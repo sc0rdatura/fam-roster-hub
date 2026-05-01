@@ -67,6 +67,16 @@ export function CreditEntryDialog({ clientId, onCreditCreated }: CreditEntryDial
   const [selectedProject, setSelectedProject] = useState<ComboboxItem | null>(null);
   const [isNewProject, setIsNewProject] = useState(false);
   const [newProjectTitle, setNewProjectTitle] = useState("");
+  const [existingProjectDetails, setExistingProjectDetails] = useState<{
+    category: string;
+    sub_type: string | null;
+    year_start: number | null;
+    year_end: number | null;
+    status: string | null;
+    imdb_url: string | null;
+    people: { name: string; role: string }[];
+    companies: { name: string; role: string }[];
+  } | null>(null);
   const [projectCategory, setProjectCategory] = useState<string>("");
   const [projectSubType, setProjectSubType] = useState<string>("");
   const [projectYearStart, setProjectYearStart] = useState("");
@@ -101,6 +111,40 @@ export function CreditEntryDialog({ clientId, onCreditCreated }: CreditEntryDial
   const { rows: subtypes } = useLookupTable("project_subtypes");
   const { rows: peopleRoles } = useLookupTable("project_people_roles");
   const { rows: creditRoles } = useLookupTable("credit_roles");
+
+  async function fetchProjectDetails(projectId: string) {
+    const [projRes, ppRes, pcRes] = await Promise.all([
+      supabase
+        .from("projects")
+        .select("category, sub_type, year_start, year_end, status, imdb_url")
+        .eq("id", projectId)
+        .single(),
+      supabase
+        .from("project_people")
+        .select("role_on_project, people!inner(full_name)")
+        .eq("project_id", projectId),
+      supabase
+        .from("project_companies")
+        .select("role, companies!inner(name)")
+        .eq("project_id", projectId),
+    ]);
+
+    if (projRes.data) {
+      const peopleMapped = (ppRes.data ?? []).map((r: any) => ({
+        name: r.people.full_name,
+        role: r.role_on_project,
+      }));
+      const companiesMapped = (pcRes.data ?? []).map((r: any) => ({
+        name: r.companies.name,
+        role: r.role,
+      }));
+      setExistingProjectDetails({
+        ...projRes.data,
+        people: peopleMapped,
+        companies: companiesMapped,
+      });
+    }
+  }
 
   const searchPeople = useCallback(async (query: string): Promise<ComboboxItem[]> => {
     const dbResults = await searchPeopleDb(query);
@@ -156,6 +200,7 @@ export function CreditEntryDialog({ clientId, onCreditCreated }: CreditEntryDial
     setSelectedProject(null);
     setIsNewProject(false);
     setNewProjectTitle("");
+    setExistingProjectDetails(null);
     setProjectCategory("");
     setProjectSubType("");
     setProjectYearStart("");
@@ -392,16 +437,95 @@ export function CreditEntryDialog({ clientId, onCreditCreated }: CreditEntryDial
                   onSelect={(item) => {
                     setSelectedProject(item);
                     setIsNewProject(false);
+                    setExistingProjectDetails(null);
+                    fetchProjectDetails(item.id);
                   }}
                   onCreate={(query) => {
                     setIsNewProject(true);
                     setNewProjectTitle(query);
                     setSelectedProject(null);
+                    setExistingProjectDetails(null);
                   }}
                   value={selectedProject}
                   placeholder="Search projects…"
                   createLabel="Create new project"
                 />
+                {selectedProject && existingProjectDetails && (
+                  <div className="rounded-md border bg-muted/30 p-3">
+                    <div className="grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Category</span>
+                        <span className="font-medium">{existingProjectDetails.category}</span>
+                      </div>
+                      {existingProjectDetails.sub_type && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Sub-type</span>
+                          <span className="font-medium">
+                            {subtypes.find((s) => s.value === existingProjectDetails.sub_type)?.display_label ?? existingProjectDetails.sub_type}
+                          </span>
+                        </div>
+                      )}
+                      {(existingProjectDetails.year_start || existingProjectDetails.year_end) && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Year</span>
+                          <span className="font-medium">
+                            {existingProjectDetails.year_start && existingProjectDetails.year_end
+                              ? existingProjectDetails.year_start === existingProjectDetails.year_end
+                                ? `${existingProjectDetails.year_start}`
+                                : `${existingProjectDetails.year_start}–${existingProjectDetails.year_end}`
+                              : existingProjectDetails.year_start ?? existingProjectDetails.year_end}
+                          </span>
+                        </div>
+                      )}
+                      {existingProjectDetails.status && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Status</span>
+                          <span className="font-medium">{existingProjectDetails.status}</span>
+                        </div>
+                      )}
+                      {existingProjectDetails.imdb_url && (
+                        <div className="flex justify-between sm:col-span-2">
+                          <span className="text-muted-foreground">IMDb</span>
+                          <a
+                            href={existingProjectDetails.imdb_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="truncate font-medium text-blue-600 hover:underline"
+                          >
+                            {existingProjectDetails.imdb_url}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                    {existingProjectDetails.people.length > 0 && (
+                      <div className="mt-2 border-t pt-2">
+                        <span className="text-xs font-medium text-muted-foreground">People</span>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {existingProjectDetails.people.map((p, i) => {
+                            const roleLabel = peopleRoles.find((r) => r.value === p.role)?.display_label ?? p.role;
+                            return (
+                              <Badge key={i} variant="outline" className="text-xs">
+                                {p.name} — {roleLabel}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {existingProjectDetails.companies.length > 0 && (
+                      <div className="mt-2 border-t pt-2">
+                        <span className="text-xs font-medium text-muted-foreground">Companies</span>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {existingProjectDetails.companies.map((c, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">
+                              {c.name} — {c.role}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-3 rounded-md border p-3">
@@ -454,11 +578,15 @@ export function CreditEntryDialog({ clientId, onCreditCreated }: CreditEntryDial
                   </div>
                   <div className="space-y-1">
                     <Label>Status</Label>
-                    <Select value={projectStatus} onValueChange={setProjectStatus}>
+                    <Select
+                      value={projectStatus}
+                      onValueChange={(v) => setProjectStatus(v === "__none__" ? "" : v)}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="None" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="__none__">None</SelectItem>
                         <SelectItem value="In Production">In Production</SelectItem>
                       </SelectContent>
                     </Select>
