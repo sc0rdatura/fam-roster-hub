@@ -3,17 +3,20 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import type { Client } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, ExternalLink, Globe, Film } from "lucide-react";
+import { ClientEditForm } from "@/components/ClientEditForm";
+import { ArrowLeft, ExternalLink, Globe, Film, Pencil } from "lucide-react";
 
 export default function ClientProfilePage() {
   const { id } = useParams<{ id: string }>();
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -99,6 +102,16 @@ export default function ClientProfilePage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {!editing && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditing(true)}
+            >
+              <Pencil className="mr-1 h-4 w-4" />
+              Edit
+            </Button>
+          )}
           {client.imdb_url && (
             <a
               href={client.imdb_url}
@@ -128,6 +141,16 @@ export default function ClientProfilePage() {
 
       <Separator className="my-6" />
 
+      {editing ? (
+        <ClientEditForm
+          client={client}
+          onSaved={(updated) => {
+            setClient(updated);
+            setEditing(false);
+          }}
+          onCancel={() => setEditing(false)}
+        />
+      ) : (
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -236,6 +259,7 @@ export default function ClientProfilePage() {
           </Card>
         </TabsContent>
       </Tabs>
+      )}
     </div>
   );
 }
