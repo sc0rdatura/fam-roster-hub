@@ -794,6 +794,10 @@ export type Database = {
         Args: Record<string, never>
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      auto_create_relationships: {
+        Args: { p_credit_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       award_result: "Won" | "Nominated"

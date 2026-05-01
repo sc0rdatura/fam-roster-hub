@@ -126,7 +126,18 @@ export function CreditList({ clientId, refreshKey }: CreditListProps) {
       prev.map((c) => (c.id === creditId ? { ...c, status: next } : c)),
     );
 
-    toast.success(`Credit ${next === "published" ? "published" : "unpublished"}`);
+    if (next === "published") {
+      const { error: rpcError } = await supabase.rpc("auto_create_relationships", {
+        p_credit_id: creditId,
+      });
+      if (rpcError) {
+        toast.warning("Credit published, but relationship sync failed: " + rpcError.message);
+      } else {
+        toast.success("Credit published — relationships updated");
+      }
+    } else {
+      toast.success("Credit unpublished");
+    }
   }
 
   if (loading) {
