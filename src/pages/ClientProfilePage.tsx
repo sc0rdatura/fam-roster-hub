@@ -183,6 +183,14 @@ export default function ClientProfilePage() {
                     No bio added yet.
                   </p>
                 )}
+                {client.bio_short && (
+                  <div className="mt-4 border-t pt-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Short bio
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm">{client.bio_short}</p>
+                  </div>
+                )}
                 {client.bio_status && (
                   <Badge variant="outline" className="mt-3">
                     Bio: {client.bio_status}

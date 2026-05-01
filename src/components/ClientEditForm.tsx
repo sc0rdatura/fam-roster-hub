@@ -2,11 +2,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
-import type { Client } from "@/types";
+import type { Client, Enums } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { BioRichTextEditor } from "@/components/BioRichTextEditor";
+import { sanitizeBioHtml } from "@/lib/bioSanitizer";
 import {
   Select,
   SelectContent,
@@ -20,6 +23,8 @@ import { useState } from "react";
 
 const ROLE_TYPES = ["Composer", "Music Supervisor", "Music Editor", "Other"] as const;
 
+const BIO_STATUS = ["draft", "published"] as const;
+
 const clientSchema = z.object({
   full_name: z.string().min(1, "Name is required"),
   role_type: z.enum(ROLE_TYPES, {
@@ -30,6 +35,9 @@ const clientSchema = z.object({
   manager_name: z.string().optional(),
   manager_email: z.string().email("Must be a valid email").or(z.literal("")).optional(),
   is_active: z.boolean(),
+  bio_short: z.string().optional(),
+  bio_short_draft: z.string().optional(),
+  bio_status: z.enum(BIO_STATUS).nullable().optional(),
 });
 
 type ClientFormValues = z.infer<typeof clientSchema>;
@@ -40,8 +48,23 @@ interface ClientEditFormProps {
   onCancel: () => void;
 }
 
+function bioForStorage(html: string): string | null {
+  const sanitized = sanitizeBioHtml(html);
+  const text = sanitized.replace(/<[^>]+>/g, "").trim();
+  if (!text) return null;
+  return sanitized;
+}
+
+const EMPTY_BIO = "<p></p>";
+
 export function ClientEditForm({ client, onSaved, onCancel }: ClientEditFormProps) {
   const [saving, setSaving] = useState(false);
+  const [bioFull, setBioFull] = useState(
+    () => client.bio_full?.trim() ? client.bio_full : EMPTY_BIO,
+  );
+  const [bioFullDraft, setBioFullDraft] = useState(
+    () => client.bio_full_draft?.trim() ? client.bio_full_draft : EMPTY_BIO,
+  );
   const [baseLocations, setBaseLocations] = useState<string[]>(
     client.base_locations ?? []
   );
@@ -71,6 +94,9 @@ export function ClientEditForm({ client, onSaved, onCancel }: ClientEditFormProp
       manager_name: client.manager_name ?? "",
       manager_email: client.manager_email ?? "",
       is_active: client.is_active,
+      bio_short: client.bio_short ?? "",
+      bio_short_draft: client.bio_short_draft ?? "",
+      bio_status: (client.bio_status ?? "draft") as Enums<"content_status">,
     },
   });
 
@@ -93,6 +119,11 @@ export function ClientEditForm({ client, onSaved, onCancel }: ClientEditFormProp
         nationalities: nationalities.length > 0 ? nationalities : null,
         primary_tax_territory: primaryTax[0] || null,
         secondary_tax_territory: secondaryTax[0] || null,
+        bio_full: bioForStorage(bioFull),
+        bio_full_draft: bioForStorage(bioFullDraft),
+        bio_short: values.bio_short?.trim() || null,
+        bio_short_draft: values.bio_short_draft?.trim() || null,
+        bio_status: values.bio_status ?? "draft",
       })
       .eq("id", client.id)
       .select()
@@ -107,6 +138,13 @@ export function ClientEditForm({ client, onSaved, onCancel }: ClientEditFormProp
 
     toast.success("Client updated successfully");
     onSaved(data);
+  }
+
+  function publishDraftToPublished() {
+    setBioFull(bioFullDraft);
+    setValue("bio_short", watch("bio_short_draft") ?? "", { shouldDirty: true });
+    setValue("bio_status", "published", { shouldValidate: true });
+    toast.success("Draft copied into published fields. Save changes to persist.");
   }
 
   return (
@@ -225,6 +263,77 @@ export function ClientEditForm({ client, onSaved, onCancel }: ClientEditFormProp
             placeholder="Select country…"
             multiple={false}
           />
+        </div>
+      </div>
+
+      <div className="space-y-4 rounded-lg border p-4">
+        <h3 className="text-sm font-semibold">Bio</h3>
+        <p className="text-xs text-muted-foreground">
+          Long bios allow bold and italic only. Content is sanitized on save to{" "}
+          <code className="rounded bg-muted px-1">&lt;p&gt;</code>,{" "}
+          <code className="rounded bg-muted px-1">&lt;strong&gt;</code>,{" "}
+          <code className="rounded bg-muted px-1">&lt;em&gt;</code>,{" "}
+          <code className="rounded bg-muted px-1">&lt;br&gt;</code>.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Published long bio</Label>
+            <BioRichTextEditor
+              key={`${client.id}-bio-full`}
+              value={bioFull}
+              onChange={setBioFull}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Draft long bio</Label>
+            <BioRichTextEditor
+              key={`${client.id}-bio-draft`}
+              value={bioFullDraft}
+              onChange={setBioFullDraft}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="bio_short">Published short bio</Label>
+            <Textarea
+              id="bio_short"
+              rows={4}
+              {...register("bio_short")}
+              placeholder="Plain text pitch / short bio"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="bio_short_draft">Draft short bio</Label>
+            <Textarea
+              id="bio_short_draft"
+              rows={4}
+              {...register("bio_short_draft")}
+              placeholder="Work in progress short bio"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <Label>Bio status</Label>
+            <Select
+              value={watch("bio_status") ?? "draft"}
+              onValueChange={(v) =>
+                setValue("bio_status", v as Enums<"content_status">, {
+                  shouldValidate: true,
+                })
+              }
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">draft</SelectItem>
+                <SelectItem value="published">published</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button type="button" variant="secondary" onClick={publishDraftToPublished}>
+            Publish draft → published
+          </Button>
         </div>
       </div>
 
