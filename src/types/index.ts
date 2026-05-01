@@ -1,3 +1,9 @@
+import type {
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+} from "@/lib/database.types";
+
 export type { Database, Json } from "@/lib/database.types";
 export type {
   Tables,

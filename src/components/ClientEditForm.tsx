@@ -23,7 +23,6 @@ const ROLE_TYPES = ["Composer", "Music Supervisor", "Music Editor", "Other"] as 
 const clientSchema = z.object({
   full_name: z.string().min(1, "Name is required"),
   role_type: z.enum(ROLE_TYPES, {
-    required_error: "Role is required",
     message: "Role is required",
   }),
   imdb_url: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
