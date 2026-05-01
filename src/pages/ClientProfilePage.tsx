@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ClientEditForm } from "@/components/ClientEditForm";
 import { CreditEntryDialog } from "@/components/CreditEntryDialog";
 import { CreditList } from "@/components/CreditList";
+import { RelationshipList } from "@/components/RelationshipList";
 import { ArrowLeft, ExternalLink, Globe, Film, Pencil } from "lucide-react";
 
 export default function ClientProfilePage() {
@@ -256,12 +257,7 @@ export default function ClientProfilePage() {
         </TabsContent>
 
         <TabsContent value="relationships" className="mt-6">
-          <Card>
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              Relationships will be displayed here once relationship management
-              is built.
-            </CardContent>
-          </Card>
+          <RelationshipList clientId={client.id} />
         </TabsContent>
       </Tabs>
       )}
