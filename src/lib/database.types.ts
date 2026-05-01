@@ -651,6 +651,7 @@ export type Database = {
           url: string
           notes: string | null
           display_order: number
+          deleted_at: string | null
         }
         Insert: {
           id?: string
@@ -659,6 +660,7 @@ export type Database = {
           url: string
           notes?: string | null
           display_order?: number
+          deleted_at?: string | null
         }
         Update: {
           id?: string
@@ -667,6 +669,7 @@ export type Database = {
           url?: string
           notes?: string | null
           display_order?: number
+          deleted_at?: string | null
         }
         Relationships: [
           {

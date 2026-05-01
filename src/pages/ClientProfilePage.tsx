@@ -13,6 +13,7 @@ import { CreditEntryDialog } from "@/components/CreditEntryDialog";
 import { CreditList } from "@/components/CreditList";
 import { RelationshipList } from "@/components/RelationshipList";
 import { AwardList } from "@/components/AwardList";
+import { ReelList } from "@/components/ReelList";
 import { ArrowLeft, ExternalLink, Globe, Film, Pencil } from "lucide-react";
 
 export default function ClientProfilePage() {
@@ -246,11 +247,7 @@ export default function ClientProfilePage() {
         </TabsContent>
 
         <TabsContent value="reels" className="mt-6">
-          <Card>
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              Reels will be displayed here once reels management is built.
-            </CardContent>
-          </Card>
+          <ReelList clientId={client.id} />
         </TabsContent>
 
         <TabsContent value="relationships" className="mt-6">
