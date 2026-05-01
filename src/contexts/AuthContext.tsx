@@ -44,20 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
       if (!mounted) return;
 
       setSession(newSession);
       setUser(newSession?.user ?? null);
-
-      if (newSession?.user) {
-        const userRole = await fetchUserRole(newSession.user.id);
-        if (mounted) setRole(userRole);
-      } else {
-        setRole(null);
-      }
-
-      if (mounted) setLoading(false);
+      if (!newSession?.user) setRole(null);
+      setLoading(false);
     });
 
     return () => {
@@ -65,6 +58,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setRole(null);
+      return;
+    }
+    let cancelled = false;
+    fetchUserRole(user.id).then((r) => {
+      if (!cancelled) setRole(r);
+    });
+    return () => { cancelled = true; };
+  }, [user]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
