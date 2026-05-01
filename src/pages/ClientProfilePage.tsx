@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClientEditForm } from "@/components/ClientEditForm";
+import { CreditEntryDialog } from "@/components/CreditEntryDialog";
 import { ArrowLeft, ExternalLink, Globe, Film, Pencil } from "lucide-react";
 
 export default function ClientProfilePage() {
@@ -227,9 +228,17 @@ export default function ClientProfilePage() {
         </TabsContent>
 
         <TabsContent value="credits" className="mt-6">
+          <div className="mb-4 flex justify-end">
+            <CreditEntryDialog
+              clientId={client.id}
+              onCreditCreated={() => {
+                /* T7 will add credit list refresh here */
+              }}
+            />
+          </div>
           <Card>
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              Credits will be displayed here once credit entry is built.
+              Credit list will be displayed here (T7). Use "Add credit" above to create entries.
             </CardContent>
           </Card>
         </TabsContent>
