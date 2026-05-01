@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { TooltipProvider } from "./components/ui/tooltip";
+import { Toaster } from "./components/ui/sonner";
 import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RootLayout from "./layouts/RootLayout";
@@ -12,20 +14,23 @@ import RelationshipsPage from "./pages/RelationshipsPage";
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route element={<ProtectedRoute />}>
-            <Route element={<RootLayout />}>
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/clients" element={<ClientListPage />} />
-              <Route path="/clients/:id" element={<ClientProfilePage />} />
-              <Route path="/credits" element={<CreditsPage />} />
-              <Route path="/relationships" element={<RelationshipsPage />} />
+      <TooltipProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<RootLayout />}>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/clients" element={<ClientListPage />} />
+                <Route path="/clients/:id" element={<ClientProfilePage />} />
+                <Route path="/credits" element={<CreditsPage />} />
+                <Route path="/relationships" element={<RelationshipsPage />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+        <Toaster />
+      </TooltipProvider>
     </AuthProvider>
   );
 }

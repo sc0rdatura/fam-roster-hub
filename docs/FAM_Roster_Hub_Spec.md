@@ -1,5 +1,5 @@
 # FAM Roster Hub — Project Specification
-**Version:** 4.3
+**Version:** 4.4
 **Date:** April 2026
 **Owner:** FAM (First Artists Management)
 **Status:** Final — approved for Supabase migration SQL
@@ -7,6 +7,8 @@
 **v4.2 addition:** Added client profile fields from onboarding document:
 base_locations, nationalities, primary_tax_territory,
 secondary_tax_territory, manager_name, manager_email.
+**CHANGES IN v4.4:**
+Section 2: added "Authentication" subsection documenting email/password auth, manual admin creation via Supabase dashboard, public signup disabled, and the user_roles table as the role assignment mechanism.
 
 ---
 
@@ -47,6 +49,20 @@ not fixed; roles are assigned dynamically.
   to admins.
 - Admins can create and publish credits and awards directly.
 
+### Authentication
+
+Email/password only. No OAuth, no magic links.
+
+| Concern | Implementation |
+|---|---|
+| Auth provider | Supabase Auth (email/password via `signInWithPassword`) |
+| Role storage | `user_roles` table: links `auth.users.id` to `role` enum (admin, client) and optional `client_id` FK |
+| Role lookup | `get_user_role()` Postgres function (SECURITY DEFINER, STABLE); used in all RLS policy definitions |
+| Admin account creation | Manual via Supabase dashboard. No invite flow or admin-creation UI in Phase 1. |
+| Client account creation | Phase 2 scope. `client_id` FK on `user_roles` links a client-role user to their `clients` record. |
+| Public signup | Disabled in Supabase dashboard. Must be re-evaluated in Phase 2 for client invite flow. |
+| Session management | React `AuthContext` subscribes to `onAuthStateChange` for reactive session state. |
+| RLS enforcement | Phase 1: admin full access on all tables; authenticated read on lookup tables; self-read on `user_roles`. Client-scoped policies deferred to Phase 2. |
 ---
 
 ## 3. Build Phases
